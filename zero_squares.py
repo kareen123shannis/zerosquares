@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
 
-
 class State:
     def __init__(self, initial_board):
         self.board = [row[:] for row in initial_board]
@@ -11,15 +10,15 @@ class State:
     def is_solved(self):
         return self.red_reached and self.blue_reached
 
-    def move_square(self, r, c, dir):
+    def move_square(self, r, c, direction):
         new_r, new_c = r, c
-        if dir == "Right":
+        if direction == "Right":
             new_c = self.move_right(r, c)
-        elif dir == "Left":
+        elif direction == "Left":
             new_c = self.move_left(r, c)
-        elif dir == "Up":
+        elif direction == "Up":
             new_r = self.move_up(r, c)
-        elif dir == "Down":
+        elif direction == "Down":
             new_r = self.move_down(r, c)
 
         if (new_r, new_c) != (r, c):
@@ -55,31 +54,22 @@ class State:
             return True
         return False
 
-    def next_state(self, dir):
+    def next_state(self, direction):
         new_state = State(self.board)
         for r in range(8):
             for c in range(11):
                 if new_state.board[r][c] in [1, 2] and not new_state.square_reached(r, c):
-                    new_state.move_square(r, c, dir)
+                    new_state.move_square(r, c, direction)
+        for r in range(8):
+            for c in range(11):
+                new_state.square_reached(r, c)  # التحقق من الوصول بعد كل تحرك
         return new_state
 
+    def __eq__(self, other):
+        return self.board == other.board
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def __hash__(self):
+        return hash(tuple(tuple(row) for row in self.board))
 
 
 class ZeroSquares:
@@ -109,8 +99,6 @@ class ZeroSquares:
 
         self.square_borders(2, 7, 'blue')
         self.square_borders(5, 8, 'red')
-
-
         self.show_possible_moves()
 
     def draw_cell(self, r, c):
@@ -123,10 +111,10 @@ class ZeroSquares:
 
     def get_color(self, value):
         return {
-            -1: 'black',  
-            1: 'red',     
-            2: 'blue',    
-            0: 'white'    
+            -1: 'black',  # obstacle
+            1: 'red',     # red piece
+            2: 'blue',    # blue piece
+            0: 'white'    # empty space
         }.get(value, 'white')
 
     def square_borders(self, row, col, color):
@@ -146,8 +134,7 @@ class ZeroSquares:
         self.draw_possible_states(possible_states)
 
     def draw_possible_states(self, states):
-        
-        offset_x = 600  
+        offset_x = 600
         for i, state in enumerate(states):
             for r in range(8):
                 for c in range(11):
@@ -157,24 +144,100 @@ class ZeroSquares:
                     y1 = y0 + self.cell_size
                     color = self.get_color(state.board[r][c])
                     self.canvas.create_rectangle(x0, y0, x1, y1, fill=color, outline=color)
-
-        
             self.canvas.create_line(offset_x + (i * 220), 400, offset_x + (i * 220), 400, fill="black", width=2)
 
     def on_key_press(self, event):
         if not self.state.is_solved():
-            dir = event.keysym
-            self.state = self.state.next_state(dir)
+            direction = event.keysym
+            self.state = self.state.next_state(direction)
             self.draw_board()
             if self.state.is_solved():
                 messagebox.showinfo('Congrats', 'You won!')
+     
 
 
 
 
+
+
+
+
+
+
+
+    def bfs_search(self):
+        initial_state = self.state
+        queue = [(initial_state, [])]
+        visited = set()
+        visited.add(self.state)
+
+        while queue:
+            current_state, path = queue.pop(0)
+
+            if current_state.is_solved():
+                self.state = current_state
+                print("BFS Path:", path)
+                print("Visited:" ,len(visited))
+                self.play_solution(path)
+                return
+
+            for direction in ["Right", "Left", "Up", "Down"]:
+                next_state = current_state.next_state(direction)
+                if next_state not in visited:
+                    visited.add(next_state)
+                    queue.append((next_state, path + [direction]))
+
+                    self.master.after(1000, self.execute_move, next_state, path + [direction])
+
+        messagebox.showinfo('No solution', 'No solution found')
+
+    def dfs_search(self):
+        initial_state = self.state
+        stack = [(initial_state, [])]
+        visited = set()
+        visited.add(self.state)
+
+        while stack:
+            current_state, path = stack.pop()
+
+            if current_state.is_solved():
+                self.state = current_state
+                print("DFS Path:", path)
+                print("Visited:" ,len(visited))
+                self.play_solution(path)
+                return
+
+            for direction in ["Right", "Left", "Up", "Down"]:
+                next_state = current_state.next_state(direction)
+                if next_state not in visited:
+                    visited.add(next_state)
+                    stack.append((next_state, path + [direction]))
+
+                    self.master.after(1000, self.execute_move, next_state, path + [direction])
+
+        messagebox.showinfo('No solution', 'No solution found')
+
+    def execute_move(self, next_state, path):
+        self.state = next_state
+        self.draw_board()
+        if self.state.is_solved():
+            messagebox.showinfo('Congrats', 'Solution completed!')
+
+    def play_solution(self, path):
+        self.execute_moves(path, 0)
+
+    def execute_moves(self, moves, index):
+        if index < len(moves):
+            direction = moves[index]
+            self.state = self.state.next_state(direction)
+            self.draw_board()
+            self.master.after(1000, self.execute_moves, moves, index + 1)
+        else:
+            messagebox.showinfo('Congrats', 'Solution completed!')
 
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = ZeroSquares(root)
+    root.after(1000, app.dfs_search)  
     root.mainloop()
