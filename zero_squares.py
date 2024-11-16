@@ -10,15 +10,15 @@ class State:
     def is_solved(self):
         return self.red_reached and self.blue_reached
 
-    def move_square(self, r, c, direction):
+    def move_square(self, r, c, dir):
         new_r, new_c = r, c
-        if direction == "Right":
+        if dir == "Right":
             new_c = self.move_right(r, c)
-        elif direction == "Left":
+        elif dir == "Left":
             new_c = self.move_left(r, c)
-        elif direction == "Up":
+        elif dir == "Up":
             new_r = self.move_up(r, c)
-        elif direction == "Down":
+        elif dir == "Down":
             new_r = self.move_down(r, c)
 
         if (new_r, new_c) != (r, c):
@@ -54,15 +54,15 @@ class State:
             return True
         return False
 
-    def next_state(self, direction):
+    def next_state(self, dir):
         new_state = State(self.board)
         for r in range(8):
             for c in range(11):
                 if new_state.board[r][c] in [1, 2] and not new_state.square_reached(r, c):
-                    new_state.move_square(r, c, direction)
+                    new_state.move_square(r, c, dir)
         for r in range(8):
             for c in range(11):
-                new_state.square_reached(r, c)  # التحقق من الوصول بعد كل تحرك
+                new_state.square_reached(r, c)  
         return new_state
 
     def __eq__(self, other):
@@ -148,8 +148,8 @@ class ZeroSquares:
 
     def on_key_press(self, event):
         if not self.state.is_solved():
-            direction = event.keysym
-            self.state = self.state.next_state(direction)
+            dir = event.keysym
+            self.state = self.state.next_state(dir)
             self.draw_board()
             if self.state.is_solved():
                 messagebox.showinfo('Congrats', 'You won!')
@@ -181,13 +181,13 @@ class ZeroSquares:
                 self.play_solution(path)
                 return
 
-            for direction in ["Right", "Left", "Up", "Down"]:
-                next_state = current_state.next_state(direction)
+            for dir in ["Right", "Left", "Up", "Down"]:
+                next_state = current_state.next_state(dir)
                 if next_state not in visited:
                     visited.add(next_state)
-                    queue.append((next_state, path + [direction]))
+                    queue.append((next_state, path + [dir]))
 
-                    self.master.after(1000, self.execute_move, next_state, path + [direction])
+                    self.master.after(1000, self.execute_move, next_state, path + [dir])
 
         messagebox.showinfo('No solution', 'No solution found')
 
@@ -207,13 +207,13 @@ class ZeroSquares:
                 self.play_solution(path)
                 return
 
-            for direction in ["Right", "Left", "Up", "Down"]:
-                next_state = current_state.next_state(direction)
+            for dir in ["Right", "Left", "Up", "Down"]:
+                next_state = current_state.next_state(dir)
                 if next_state not in visited:
                     visited.add(next_state)
-                    stack.append((next_state, path + [direction]))
+                    stack.append((next_state, path + [dir]))
 
-                    self.master.after(1000, self.execute_move, next_state, path + [direction])
+                    self.master.after(1000, self.execute_move, next_state, path + [dir])
 
         messagebox.showinfo('No solution', 'No solution found')
 
@@ -228,8 +228,8 @@ class ZeroSquares:
 
     def execute_moves(self, moves, index):
         if index < len(moves):
-            direction = moves[index]
-            self.state = self.state.next_state(direction)
+            dir = moves[index]
+            self.state = self.state.next_state(dir)
             self.draw_board()
             self.master.after(1000, self.execute_moves, moves, index + 1)
         else:
