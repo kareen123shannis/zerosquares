@@ -1,3 +1,5 @@
+
+
 import tkinter as tk
 from tkinter import messagebox
 
@@ -111,10 +113,10 @@ class ZeroSquares:
 
     def get_color(self, value):
         return {
-            -1: 'black',  # obstacle
-            1: 'red',     # red piece
-            2: 'blue',    # blue piece
-            0: 'white'    # empty space
+            -1: 'black',  
+            1: 'red',     
+            2: 'blue',    
+            0: 'white'    
         }.get(value, 'white')
 
     def square_borders(self, row, col, color):
@@ -192,30 +194,34 @@ class ZeroSquares:
         messagebox.showinfo('No solution', 'No solution found')
 
     def dfs_search(self):
-        initial_state = self.state
-        stack = [(initial_state, [])]
-        visited = set()
-        visited.add(self.state)
-
-        while stack:
-            current_state, path = stack.pop()
-
+        def dfs_recursive(current_state, path, visited):
             if current_state.is_solved():
-                self.state = current_state
-                print("DFS Path:", path)
-                print("Visited:" ,len(visited))
-                self.play_solution(path)
-                return
-
+               self.state = current_state
+               print("DFS Path:", path)
+               print("Visited:" ,len(visited))
+               self.play_solution(path)
+               return True 
+            visited.add(current_state)
+        
             for dir in ["Right", "Left", "Up", "Down"]:
                 next_state = current_state.next_state(dir)
+        
                 if next_state not in visited:
-                    visited.add(next_state)
-                    stack.append((next_state, path + [dir]))
+            
+                  if dfs_recursive(next_state, path + [dir], visited):
+                    return True  
+        
+            return False 
+        visited = set()
+        if not dfs_recursive(self.state, [], visited):
+             messagebox.showinfo('No solution', 'No solution found')
 
-                    self.master.after(1000, self.execute_move, next_state, path + [dir])
+        
 
-        messagebox.showinfo('No solution', 'No solution found')
+        
+   
+       
+
 
     def execute_move(self, next_state, path):
         self.state = next_state
@@ -232,6 +238,7 @@ class ZeroSquares:
             self.state = self.state.next_state(dir)
             self.draw_board()
             self.master.after(1000, self.execute_moves, moves, index + 1)
+            
         else:
             messagebox.showinfo('Congrats', 'Solution completed!')
 
