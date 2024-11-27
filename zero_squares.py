@@ -282,5 +282,5 @@ class ZeroSquares:
 root = tk.Tk()
 root.title("Zero Squares Game")
 app = ZeroSquares(root)
-root.after(1000, app.dfs_search)
+root.after(1000, app.ucs_search)
 root.mainloop()
