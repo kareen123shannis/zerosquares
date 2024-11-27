@@ -1,6 +1,7 @@
+
+
 import tkinter as tk
 from tkinter import messagebox
-import queue  
 
 class State:
     def __init__(self, initial_board):
@@ -12,40 +13,37 @@ class State:
         return self.red_reached and self.blue_reached
 
     def move_square(self, r, c, dir):
-        new_state = State(self.board)  
         new_r, new_c = r, c
         if dir == "Right":
-            new_c = self.move_right(r, c, new_state)
+            new_c = self.move_right(r, c)
         elif dir == "Left":
-            new_c = self.move_left(r, c, new_state)
+            new_c = self.move_left(r, c)
         elif dir == "Up":
-            new_r = self.move_up(r, c, new_state)
+            new_r = self.move_up(r, c)
         elif dir == "Down":
-            new_r = self.move_down(r, c, new_state)
+            new_r = self.move_down(r, c)
 
         if (new_r, new_c) != (r, c):
-            new_state.board[new_r][new_c] = self.board[r][c]
-            new_state.board[r][c] = 0
+            self.board[new_r][new_c] = self.board[r][c]
+            self.board[r][c] = 0
 
-        return new_state 
-
-    def move_right(self, r, c, new_state):
-        while c < 10 and new_state.board[r][c + 1] == 0:
+    def move_right(self, r, c):
+        while c < 10 and self.board[r][c + 1] == 0:
             c += 1
         return c
 
-    def move_left(self, r, c, new_state):
-        while c > 0 and new_state.board[r][c - 1] == 0:
+    def move_left(self, r, c):
+        while c > 0 and self.board[r][c - 1] == 0:
             c -= 1
         return c
 
-    def move_up(self, r, c, new_state):
-        while r > 0 and new_state.board[r - 1][c] == 0:
+    def move_up(self, r, c):
+        while r > 0 and self.board[r - 1][c] == 0:
             r -= 1
         return r
 
-    def move_down(self, r, c, new_state):
-        while r < 7 and new_state.board[r + 1][c] == 0:
+    def move_down(self, r, c):
+        while r < 7 and self.board[r + 1][c] == 0:
             r += 1
         return r
 
@@ -59,28 +57,21 @@ class State:
         return False
 
     def next_state(self, dir):
-        new_state = State(self.board)  
+        new_state = State(self.board)
         for r in range(8):
             for c in range(11):
                 if new_state.board[r][c] in [1, 2] and not new_state.square_reached(r, c):
-                    new_state = new_state.move_square(r, c, dir)  
+                    new_state.move_square(r, c, dir)
         for r in range(8):
             for c in range(11):
-                new_state.square_reached(r, c)
-        return new_state  
+                new_state.square_reached(r, c)  
+        return new_state
 
     def __eq__(self, other):
         return self.board == other.board
 
     def __hash__(self):
         return hash(tuple(tuple(row) for row in self.board))
-
-
-    def __lt__(self, other):
-        return False  
-
-    def get_move_path(self):
-        return []
 
 
 class ZeroSquares:
@@ -122,10 +113,10 @@ class ZeroSquares:
 
     def get_color(self, value):
         return {
-            -1: 'black',
-            1: 'red',
-            2: 'blue',
-            0: 'white'
+            -1: 'black',  
+            1: 'red',     
+            2: 'blue',    
+            0: 'white'    
         }.get(value, 'white')
 
     def square_borders(self, row, col, color):
@@ -164,6 +155,17 @@ class ZeroSquares:
             self.draw_board()
             if self.state.is_solved():
                 messagebox.showinfo('Congrats', 'You won!')
+     
+
+
+
+
+
+
+
+
+
+
 
     def bfs_search(self):
         initial_state = self.state
@@ -187,100 +189,62 @@ class ZeroSquares:
                     visited.add(next_state)
                     queue.append((next_state, path + [dir]))
 
+                    self.master.after(1000, self.execute_move, next_state, path + [dir])
+
         messagebox.showinfo('No solution', 'No solution found')
 
     def dfs_search(self):
-      def dfs_recursive(current_state, path, visited):
-        if current_state.is_solved():
-            self.state = current_state
-            print("DFS Path:", path)
-            print("Visited:", len(visited))
-            self.play_solution(path)  
-            return True
-        visited.add(current_state)
-
-        for dir in ["Right", "Left", "Up", "Down"]:
-            next_state = current_state.next_state(dir)
-
-            if next_state not in visited:
-                if dfs_recursive(next_state, path + [dir], visited):
-                    return True
-
-        return False
-
-      visited = set()
-      if not dfs_recursive(self.state, [], visited):
-        messagebox.showinfo('No solution', 'No solution found')
-
-
-    # def dfs_search(self):
-    #     initial_state = self.state
-    #     stack = [(initial_state, [])]
-    #     visited = set()
-    #     visited.add(self.state)
-
-    #     while stack:
-    #         current_state, path = stack.pop()
-
-    #         if current_state.is_solved():
-    #             self.state = current_state
-    #             print("DFS Path:", path)
-    #             print("Visited:" ,len(visited))
-    #             self.play_solution(path)
-    #             return
-
-    #         for dir in ["Right", "Left", "Up", "Down"]:
-    #             next_state = current_state.next_state(dir)
-    #             if next_state not in visited:
-    #                 visited.add(next_state)
-    #                 stack.append((next_state, path + [dir]))
-
-    #     messagebox.showinfo('No solution', 'No solution found')
-
-    def ucs_search(self):
-        initial_state = self.state
-        pq = queue.PriorityQueue()  
-        pq.put((0, initial_state, []))  
-        visited = set()
-        visited.add(initial_state)
-
-        while not pq.empty():
-            cost, current_state, path = pq.get()
-
+        def dfs_recursive(current_state, path, visited):
             if current_state.is_solved():
-                self.state = current_state
-                print("UCS Path:", path)
-                print("Visited:" ,len(visited))
-                self.play_solution(path)
-                return
-
+               self.state = current_state
+               print("DFS Path:", path)
+               print("Visited:" ,len(visited))
+               self.play_solution(path)
+               return True 
+            visited.add(current_state)
+        
             for dir in ["Right", "Left", "Up", "Down"]:
                 next_state = current_state.next_state(dir)
+        
                 if next_state not in visited:
-                    visited.add(next_state)
-                    pq.put((cost + 1, next_state, path + [dir]))  
+            
+                  if dfs_recursive(next_state, path + [dir], visited):
+                    return True  
+        
+            return False 
+        visited = set()
+        if not dfs_recursive(self.state, [], visited):
+             messagebox.showinfo('No solution', 'No solution found')
 
-        messagebox.showinfo('No solution', 'No solution found')
+        
+
+        
+   
+       
+
+
+    def execute_move(self, next_state, path):
+        self.state = next_state
+        self.draw_board()
+        if self.state.is_solved():
+            messagebox.showinfo('Congrats', 'Solution completed!')
 
     def play_solution(self, path):
-      def execute_move(index):
-        if index < len(path):
-            move = path[index]
-            self.state = self.state.next_state(move)  
-            self.draw_board() 
-            self.master.update()  
-            self.master.after(500, execute_move, index + 1)  
+        self.execute_moves(path, 0)
+
+    def execute_moves(self, moves, index):
+        if index < len(moves):
+            dir = moves[index]
+            self.state = self.state.next_state(dir)
+            self.draw_board()
+            self.master.after(1000, self.execute_moves, moves, index + 1)
+            
         else:
-            if self.state.is_solved():
-                messagebox.showinfo('Congrats', 'You won!')  
-
-      execute_move(0)
-
- 
+            messagebox.showinfo('Congrats', 'Solution completed!')
 
 
-root = tk.Tk()
-root.title("Zero Squares Game")
-app = ZeroSquares(root)
-root.after(1000, app.dfs_search)
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ZeroSquares(root)
+    root.after(1000, app.dfs_search)  
+    root.mainloop()
