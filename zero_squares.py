@@ -17,22 +17,23 @@ class State:
         return self.cost < other.cost  
 
     def move_square(self, r, c, dir):
-        new_state = State(self.board)
-        new_r, new_c = r, c
-        if dir == "Right":
-            new_c = self.move_right(r, c, new_state)
-        elif dir == "Left":
-            new_c = self.move_left(r, c, new_state)
-        elif dir == "Up":
-            new_r = self.move_up(r, c, new_state)
-        elif dir == "Down":
-            new_r = self.move_down(r, c, new_state)
+     new_state = State(self.board)
+     new_r, new_c = r, c
+     if dir == "Right":
+        new_c = self.move_right(r, c, new_state)
+     elif dir == "Left":
+        new_c = self.move_left(r, c, new_state)
+     elif dir == "Up":
+        new_r = self.move_up(r, c, new_state)
+     elif dir == "Down":
+        new_r = self.move_down(r, c, new_state)
 
-        if (new_r, new_c) != (r, c):
-            new_state.board[new_r][new_c] = self.board[r][c]
-            new_state.board[r][c] = 0
+     if (new_r, new_c) != (r, c): 
+        new_state.board[new_r][new_c] = self.board[r][c]
+        new_state.board[r][c] = 0  
 
-        return new_state
+     return new_state
+
 
     def move_right(self, r, c, new_state):
         while c < 10 and new_state.board[r][c + 1] == 0:
@@ -62,27 +63,29 @@ class State:
             self.blue_reached = True
             return True
         return False
-    def heuristic_sub(self,state):
-        distance=0
-        for r in range(8):
-            for c in range(11):
-                if state.board[r][c]==1:
-                    distance +=abs(r - 5) + abs(c - 8)
-                elif state.board[r][c]==2:
-                    distance +=abs(r - 2) + abs(c - 7)
-            return distance
+    def heuristic_sub(self, state):
+     distance = 0
+     for r in range(8):
+        for c in range(11):
+            if state.board[r][c] == 1:
+                distance += abs(r - 5) + abs(c - 8) 
+            elif state.board[r][c] == 2:
+                distance += abs(r - 2) + abs(c - 7)  
+     return distance 
+
     def next_state(self, dir):
-        new_state = State(self.board)
-        for r in range(8):
-            for c in range(11):
-                if new_state.board[r][c] in [1, 2] and not new_state.square_reached(r, c):
-                    new_state = new_state.move_square(r, c, dir)
-        for r in range(8):
-            for c in range(11):
-                new_state.square_reached(r, c)
-                heuristic_score = self.heuristic_sub(new_state)
-                print(f"Heuristic Score: {heuristic_score}")
-        return new_state
+     new_state = State(self.board)
+    
+     for r in range(8):
+        for c in range(11):
+            if new_state.board[r][c] in [1, 2] and not new_state.square_reached(r, c):
+                new_state = new_state.move_square(r, c, dir)
+    
+
+     heuristic_score = self.heuristic_sub(new_state) 
+     print(f"Heuristic Score: {heuristic_score}") 
+     return new_state
+
 
     def eq(self, other):
         return self.board == other.board
