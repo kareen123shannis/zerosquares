@@ -80,8 +80,8 @@ class State:
         for r in range(8):
             for c in range(11):
                 new_state.square_reached(r, c)
-        heuristic_score = self.heuristic_sub(new_state)
-        print(f"Heuristic Score: {heuristic_score}")
+                heuristic_score = self.heuristic_sub(new_state)
+                print(f"Heuristic Score: {heuristic_score}")
         return new_state
 
     def eq(self, other):
